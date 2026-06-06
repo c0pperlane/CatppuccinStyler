@@ -1,0 +1,17 @@
+name: CatppuccinStyler
+version: '${project.version}'
+main: com.cadist.style.CatppuccinStyler
+api-version: '1.20'
+softdepend: [packetevents]
+authors: [Cadist]
+description: Universal Catppuccin Mocha chat styling for all server messages
+commands:
+  adminstyle:
+    description: Admin controls for Catppuccin Styler
+    usage: /adminstyle
+    aliases: [mocha, style]
+    permission: catppuccinstyler.admin
+permissions:
+  catppuccinstyler.admin:
+    default: op
+    description: Allows configuration of Catppuccin Styler

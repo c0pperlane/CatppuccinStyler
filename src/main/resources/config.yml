@@ -1,0 +1,33 @@
+# Catppuccin Styler Configuration
+# Assign gradients to events, plugins or commands.
+# Available gradients: rose, sunset, flame, citrus, meadow, ocean, twilight,
+#   berry, frost, aurora, royal, peachy, coral, mint, galaxy, lavender_preset,
+#   forest, sunset2, cotton, ember, sea, violet, spring, neon, ice, cherry,
+#   lime, bubblegum, dusk, rainbow
+
+# Plugins that should NEVER be styled (exact plugin name from /plugins)
+excluded-plugins:
+  - HuskHomes
+
+# Event type → gradient assignment
+# Event types: join, quit, death, advancement, broadcast
+event-defaults:
+  join: meadow
+  quit: flame
+  death: berry
+  advancement: aurora
+  broadcast: twilight
+
+# Plugin name → gradient assignment (optional)
+plugin-defaults:
+  CatistClaim: aurora
+  WorldGuard: ocean
+
+# Command label → gradient assignment (optional)
+command-defaults: {}
+
+# Specific message pattern → gradient overrides (regex supported)
+message-overrides: {}
+
+# Whether to add Unicode decorative prefixes
+unicode-decoration: true
