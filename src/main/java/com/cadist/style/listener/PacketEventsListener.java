@@ -2,6 +2,7 @@ package com.cadist.style.listener;
 
 import com.cadist.style.CatppuccinStyler;
 import com.cadist.style.config.GradientRegistry;
+import com.cadist.style.config.LinePatternRegistry;
 import com.cadist.style.config.MessagePattern;
 import com.cadist.style.config.MessagePatternRegistry;
 import com.cadist.style.tab.TabIntegration;
@@ -11,11 +12,15 @@ import com.github.retrooper.packetevents.event.PacketListenerPriority;
 import com.github.retrooper.packetevents.event.PacketSendEvent;
 import com.github.retrooper.packetevents.protocol.packettype.PacketType;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerPlayerListHeaderAndFooter;
+import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerScoreboardObjective;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerSystemChatMessage;
+import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerTeams;
 import com.cadist.style.util.GradientStyler;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.TextComponent;
+import net.kyori.adventure.text.format.Style;
 import net.kyori.adventure.text.format.TextColor;
+import net.kyori.adventure.text.format.TextDecoration;
 import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
 import org.bukkit.Bukkit;
@@ -54,7 +59,9 @@ public class PacketEventsListener extends PacketListenerAbstract {
     @Override
     public void onPacketSend(PacketSendEvent event) {
         if (event.getPacketType() == PacketType.Play.Server.SYSTEM_CHAT_MESSAGE) {
-            handleSystemChat(event);
+            if (plugin.getStyleConfig().isCatppuccinChatEnabled()) {
+                handleSystemChat(event);
+            }
             return;
         }
 
@@ -66,6 +73,14 @@ public class PacketEventsListener extends PacketListenerAbstract {
             return;
         }
 
+        if (tab.isScoreboardEnabled() && event.getPacketType() == PacketType.Play.Server.SCOREBOARD_OBJECTIVE) {
+            handleScoreboardObjective(event, tab.getScoreboardLineRegistry());
+            return;
+        }
+
+        if (tab.isScoreboardEnabled() && event.getPacketType() == PacketType.Play.Server.TEAMS) {
+            handleScoreboardTeam(event, tab.getScoreboardLineRegistry());
+        }
     }
 
     private void handleSystemChat(PacketSendEvent event) {
@@ -138,7 +153,7 @@ public class PacketEventsListener extends PacketListenerAbstract {
         }
     }
 
-    private Component styleHeaderFooter(Component original, com.cadist.style.config.LinePatternRegistry registry) {
+    private Component styleHeaderFooter(Component original, LinePatternRegistry registry) {
         if (isAlreadyStyled(original)) return null;
 
         String legacy = LegacyComponentSerializer.legacyAmpersand().serialize(original);
@@ -161,6 +176,75 @@ public class PacketEventsListener extends PacketListenerAbstract {
             }
         }
         return result;
+    }
+
+    private void handleScoreboardObjective(PacketSendEvent event, LinePatternRegistry registry) {
+        WrapperPlayServerScoreboardObjective packet = new WrapperPlayServerScoreboardObjective(event);
+        String name = packet.getName();
+        if (name == null || !name.toUpperCase().startsWith("TAB")) return;
+
+        Component displayName = packet.getDisplayName();
+        if (displayName == null) return;
+
+        Component styled = styleScoreboardComponent(displayName, registry);
+        if (styled != null) {
+            packet.setDisplayName(styled);
+        }
+    }
+
+    private void handleScoreboardTeam(PacketSendEvent event, LinePatternRegistry registry) {
+        WrapperPlayServerTeams packet = new WrapperPlayServerTeams(event);
+        String teamName = packet.getTeamName();
+        if (teamName == null || !teamName.startsWith("TAB-Sidebar")) return;
+
+        Optional<WrapperPlayServerTeams.ScoreBoardTeamInfo> infoOpt = packet.getTeamInfo();
+        if (infoOpt.isEmpty()) return;
+
+        WrapperPlayServerTeams.ScoreBoardTeamInfo info = infoOpt.get();
+        boolean changed = false;
+
+        Component prefix = info.getPrefix();
+        if (prefix != null) {
+            Component styled = styleScoreboardComponent(prefix, registry);
+            if (styled != null) {
+                info.setPrefix(styled);
+                changed = true;
+            }
+        }
+
+        Component suffix = info.getSuffix();
+        if (suffix != null) {
+            Component styled = styleScoreboardComponent(suffix, registry);
+            if (styled != null) {
+                info.setSuffix(styled);
+                changed = true;
+            }
+        }
+
+        Component displayName = info.getDisplayName();
+        if (displayName != null) {
+            Component styled = styleScoreboardComponent(displayName, registry);
+            if (styled != null) {
+                info.setDisplayName(styled);
+                changed = true;
+            }
+        }
+
+        if (changed) {
+            packet.setTeamInfo(info);
+        }
+    }
+
+    private Component styleScoreboardComponent(Component original, LinePatternRegistry registry) {
+        if (isAlreadyStyled(original)) return null;
+
+        String plain = PlainTextComponentSerializer.plainText().serialize(original);
+        if (plain.isEmpty()) return null;
+
+        String gradient = registry.getGradient(plain);
+        if (gradient == null) return null;
+
+        return styleComponent(original, gradient);
     }
 
     private Component stylePlainText(String text, String gradientId) {
@@ -287,20 +371,24 @@ public class PacketEventsListener extends PacketListenerAbstract {
 
         int[] index = new int[]{0};
         int totalLen = text.length();
-        return styleRecursive(original, g, index, totalLen);
+        return styleRecursive(original, g, index, totalLen, Style.empty());
     }
 
-    private Component styleRecursive(Component comp, GradientRegistry.Gradient g, int[] index, int totalLen) {
+    private Component styleRecursive(Component comp, GradientRegistry.Gradient g, int[] index, int totalLen, Style inheritedStyle) {
+        // Merge inherited decorations with this component's own decorations
+        // so that, e.g., a parent empty component with BOLD applies BOLD to its child text.
+        Style effectiveStyle = comp.style().merge(inheritedStyle);
+
         // Process children first so we can rebuild the node
         List<Component> newChildren = new ArrayList<>();
         for (Component child : comp.children()) {
-            newChildren.add(styleRecursive(child, g, index, totalLen));
+            newChildren.add(styleRecursive(child, g, index, totalLen, effectiveStyle));
         }
 
         if (comp instanceof TextComponent tc) {
             String content = tc.content();
             if (!content.isEmpty()) {
-                Component result = Component.empty().style(tc.style().color(null));
+                Component result = Component.empty().style(effectiveStyle.color(null));
 
                 for (int i = 0; i < content.length(); i++) {
                     float t = (float) index[0] / Math.max(1, totalLen - 1);
@@ -308,7 +396,7 @@ public class PacketEventsListener extends PacketListenerAbstract {
                     // Preserve click/hover/decorations/font by copying the full style,
                     // only overriding the color for this character
                     result = result.append(Component.text(String.valueOf(content.charAt(i)))
-                            .style(tc.style().color(color)));
+                            .style(effectiveStyle.color(color)));
                     index[0]++;
                 }
 

@@ -133,4 +133,13 @@ public class StyleConfig {
         config.set("catppuccin-tab.scoreboard", enabled);
         plugin.saveConfig();
     }
+
+    public boolean isCatppuccinChatEnabled() {
+        return config.getBoolean("catppuccin-tab.chat", true);
+    }
+
+    public void setCatppuccinChatEnabled(boolean enabled) {
+        config.set("catppuccin-tab.chat", enabled);
+        plugin.saveConfig();
+    }
 }

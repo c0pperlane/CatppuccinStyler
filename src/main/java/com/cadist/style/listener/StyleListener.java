@@ -51,6 +51,9 @@ public class StyleListener implements Listener {
 
     @EventHandler(priority = EventPriority.HIGHEST)
     public void onChat(AsyncChatEvent event) {
+        if (!plugin.getStyleConfig().isCatppuccinChatEnabled()) {
+            return;
+        }
         String gid = plugin.getStyleConfig().getEventGradient("chat");
         if (gid == null || gid.isEmpty()) {
             return;

@@ -58,7 +58,7 @@ public class CatppuccinGui implements InventoryHolder {
         setItem(31, item(Material.ENDER_EYE, name("Catppuccin TAB", CatppuccinTheme.MAUVE),
                 lore("Style NEZNAMY/TAB lines", CatppuccinTheme.SUBTEXT0)));
         setItem(32, item(Material.BOOK, name("Info", CatppuccinTheme.LAVENDER),
-                lore("Catppuccin Styler v1.0.0", CatppuccinTheme.SUBTEXT0),
+                lore("Catppuccin Styler v3.0.0", CatppuccinTheme.SUBTEXT0),
                 lore("30 gradients available", CatppuccinTheme.SURFACE2)));
 
         player.openInventory(inventory);

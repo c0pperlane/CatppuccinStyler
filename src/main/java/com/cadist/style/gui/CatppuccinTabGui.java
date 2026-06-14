@@ -37,10 +37,12 @@ public class CatppuccinTabGui implements InventoryHolder {
         boolean enabled = available && tab.isEnabled();
         boolean tabList = available && tab.isTabListEnabled();
         boolean scoreboard = available && tab.isScoreboardEnabled();
+        boolean chat = plugin.getStyleConfig().isCatppuccinChatEnabled();
 
         setItem(10, toggleItem(enabled, available));
         setItem(12, subToggleItem("Tab List Styling", tabList, available, Material.ENDER_EYE));
         setItem(14, subToggleItem("Scoreboard Styling", scoreboard, available, Material.PAPER));
+        setItem(16, subToggleItem("Chat Styling", chat, true, Material.WRITABLE_BOOK));
         setItem(28, item(Material.MAP, name("Browse Tab Lines", CatppuccinTheme.PEACH),
                 lore("Edit remembered header/footer gradients", CatppuccinTheme.SUBTEXT0)));
         setItem(30, item(Material.BOOK, name("Browse Scoreboard Lines", CatppuccinTheme.SKY),
@@ -60,36 +62,50 @@ public class CatppuccinTabGui implements InventoryHolder {
         int slot = event.getSlot();
 
         TabIntegration tab = plugin.getTabIntegration();
-        if (tab == null) {
-            if (slot == 49) new CatppuccinGui(plugin, player).openMain();
-            return;
-        }
 
         switch (slot) {
             case 10 -> {
+                if (tab == null) {
+                    player.sendMessage(Component.text("TAB plugin not installed.", CatppuccinTheme.RED));
+                    return;
+                }
                 tab.setEnabled(!tab.isEnabled());
                 player.sendMessage(Component.text("Catppuccin TAB " + (tab.isEnabled() ? "enabled" : "disabled"), CatppuccinTheme.GREEN));
                 openMain();
             }
             case 12 -> {
+                if (tab == null) {
+                    player.sendMessage(Component.text("TAB plugin not installed.", CatppuccinTheme.RED));
+                    return;
+                }
                 tab.setTabListEnabled(!tab.isTabListEnabled());
                 player.sendMessage(Component.text("Tab list styling " + (tab.isTabListEnabled() ? "enabled" : "disabled"), CatppuccinTheme.GREEN));
                 openMain();
             }
             case 14 -> {
+                if (tab == null) {
+                    player.sendMessage(Component.text("TAB plugin not installed.", CatppuccinTheme.RED));
+                    return;
+                }
                 tab.setScoreboardEnabled(!tab.isScoreboardEnabled());
                 player.sendMessage(Component.text("Scoreboard styling " + (tab.isScoreboardEnabled() ? "enabled" : "disabled"), CatppuccinTheme.GREEN));
                 openMain();
             }
+            case 16 -> {
+                boolean newVal = !plugin.getStyleConfig().isCatppuccinChatEnabled();
+                plugin.getStyleConfig().setCatppuccinChatEnabled(newVal);
+                player.sendMessage(Component.text("Chat styling " + (newVal ? "enabled" : "disabled"), CatppuccinTheme.GREEN));
+                openMain();
+            }
             case 28 -> {
-                if (tab.isEnabled() && tab.isTabListEnabled()) {
+                if (tab != null && tab.isEnabled() && tab.isTabListEnabled()) {
                     new LineBrowserGui(plugin, player, tab.getTabLineRegistry(), "\u25C6 Tab Lines \u25C6", this::openMain).open();
                 } else {
                     player.sendMessage(Component.text("Enable Catppuccin TAB and Tab List styling first.", CatppuccinTheme.RED));
                 }
             }
             case 30 -> {
-                if (tab.isEnabled() && tab.isScoreboardEnabled()) {
+                if (tab != null && tab.isEnabled() && tab.isScoreboardEnabled()) {
                     new LineBrowserGui(plugin, player, tab.getScoreboardLineRegistry(), "\u25C6 Scoreboard Lines \u25C6", this::openMain).open();
                 } else {
                     player.sendMessage(Component.text("Enable Catppuccin TAB and Scoreboard styling first.", CatppuccinTheme.RED));

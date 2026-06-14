@@ -37,3 +37,4 @@ catppuccin-tab:
   enabled: true
   tab-list: true
   scoreboard: true
+  chat: true
