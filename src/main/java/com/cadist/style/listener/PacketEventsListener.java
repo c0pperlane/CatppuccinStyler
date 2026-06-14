@@ -12,9 +12,11 @@ import com.github.retrooper.packetevents.event.PacketSendEvent;
 import com.github.retrooper.packetevents.protocol.packettype.PacketType;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerPlayerListHeaderAndFooter;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerSystemChatMessage;
+import com.cadist.style.util.GradientStyler;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.TextComponent;
 import net.kyori.adventure.text.format.TextColor;
+import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
 import org.bukkit.Bukkit;
 
@@ -139,19 +141,17 @@ public class PacketEventsListener extends PacketListenerAbstract {
     private Component styleHeaderFooter(Component original, com.cadist.style.config.LinePatternRegistry registry) {
         if (isAlreadyStyled(original)) return null;
 
-        String text = PlainTextComponentSerializer.plainText().serialize(original);
-        if (text.isEmpty()) return null;
+        String legacy = LegacyComponentSerializer.legacyAmpersand().serialize(original);
+        if (legacy.isEmpty()) return null;
 
-        String[] lines = text.split("\n", -1);
+        String[] lines = legacy.split("\n", -1);
         Component result = Component.empty();
         for (int i = 0; i < lines.length; i++) {
             String line = lines[i];
-            if (line.isEmpty()) {
-                result = result.append(Component.empty());
-            } else {
+            if (!line.isEmpty()) {
                 String gradient = registry.getGradient(line);
                 if (gradient != null) {
-                    result = result.append(stylePlainText(line, gradient));
+                    result = result.append(GradientStyler.styleLegacyLine(line, gradient));
                 } else {
                     result = result.append(Component.text(line));
                 }

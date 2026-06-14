@@ -153,7 +153,8 @@ public class NezamyTabIntegration implements TabIntegration {
         String textPart = parts[0];
         if (textPart.isEmpty()) return raw;
 
-        String stripped = textPart.replaceAll("(?i)[&§][0-9a-fk-or]", "").trim();
+        // Filter color codes and reset, keep formatting codes (bold, italic, etc.)
+        String stripped = textPart.replaceAll("(?i)[&§][0-9a-fr]", "").trim();
         if (stripped.isEmpty()) return raw;
         if (stripped.toLowerCase().contains("<gradient")) return raw; // already styled
 
@@ -209,7 +210,7 @@ public class NezamyTabIntegration implements TabIntegration {
 
     private String fingerprintOf(String rawLine) {
         if (rawLine == null) return "";
-        String stripped = rawLine.replaceAll("(?i)[&§][0-9a-fk-or]", "").trim();
+        String stripped = rawLine.replaceAll("(?i)[&§][0-9a-fr]", "").trim();
         return TextFingerprint.create(stripped);
     }
 }

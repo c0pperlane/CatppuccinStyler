@@ -5,6 +5,7 @@ import com.cadist.style.config.MessagePatternRegistry;
 import com.cadist.style.config.StyleConfig;
 import com.cadist.style.gui.GuiListener;
 import com.cadist.style.listener.StyleListener;
+import org.bukkit.command.PluginCommand;
 import org.bukkit.plugin.java.JavaPlugin;
 
 public class CatppuccinStyler extends JavaPlugin {
@@ -16,30 +17,44 @@ public class CatppuccinStyler extends JavaPlugin {
 
     @Override
     public void onEnable() {
-        instance = this;
-        saveDefaultConfig();
-        com.cadist.style.util.ConfigUpdater.update(this);
-        this.styleConfig = new StyleConfig(this);
-        this.patternRegistry = new MessagePatternRegistry(this);
+        try {
+            instance = this;
+            getLogger().info("Enabling CatppuccinStyler v" + getDescription().getVersion());
 
-        getCommand("adminstyle").setExecutor(new CatppuccinCommand(this));
-        getServer().getPluginManager().registerEvents(new StyleListener(this), this);
-        getServer().getPluginManager().registerEvents(new GuiListener(), this);
+            saveDefaultConfig();
+            com.cadist.style.util.ConfigUpdater.update(this);
+            this.styleConfig = new StyleConfig(this);
+            this.patternRegistry = new MessagePatternRegistry(this);
 
-        if (getServer().getPluginManager().getPlugin("packetevents") != null) {
-            loadIntegration("com.cadist.style.packet.PacketEventsIntegration", "PacketEvents");
-        } else {
-            getLogger().warning("PacketEvents not found — system chat and TAB header/footer styling are disabled.");
-            getLogger().warning("Install PacketEvents to enable those features: https://github.com/retrooper/packetevents");
+            PluginCommand adminStyleCmd = getCommand("adminstyle");
+            if (adminStyleCmd != null) {
+                adminStyleCmd.setExecutor(new CatppuccinCommand(this));
+                getLogger().info("Command /adminstyle registered.");
+            } else {
+                getLogger().severe("Could not register /adminstyle — command missing from plugin.yml?");
+            }
+
+            getServer().getPluginManager().registerEvents(new StyleListener(this), this);
+            getServer().getPluginManager().registerEvents(new GuiListener(), this);
+
+            if (getServer().getPluginManager().getPlugin("packetevents") != null) {
+                loadIntegration("com.cadist.style.packet.PacketEventsIntegration", "PacketEvents");
+            } else {
+                getLogger().warning("PacketEvents not found — system chat and TAB header/footer styling are disabled.");
+                getLogger().warning("Install PacketEvents to enable those features: https://github.com/retrooper/packetevents");
+            }
+
+            if (getServer().getPluginManager().getPlugin("TAB") != null) {
+                loadTabIntegration();
+            } else {
+                getLogger().info("TAB not found — Catppuccin TAB styling disabled.");
+            }
+
+            getLogger().info("Catppuccin Styler enabled — styling " + styleConfig.getEventDefaults().size() + " event types.");
+        } catch (Throwable t) {
+            getLogger().severe("Catppuccin Styler failed to enable: " + t.getMessage());
+            t.printStackTrace();
         }
-
-        if (getServer().getPluginManager().getPlugin("TAB") != null) {
-            loadTabIntegration();
-        } else {
-            getLogger().info("TAB not found — Catppuccin TAB styling disabled.");
-        }
-
-        getLogger().info("Catppuccin Styler enabled — styling " + styleConfig.getEventDefaults().size() + " event types.");
     }
 
     @Override

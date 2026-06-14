@@ -34,6 +34,6 @@ unicode-decoration: true
 
 # NEZNAMY/TAB integration (requires TAB plugin)
 catppuccin-tab:
-  enabled: false
+  enabled: true
   tab-list: true
   scoreboard: true
