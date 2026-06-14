@@ -4,11 +4,13 @@ import com.cadist.style.CatppuccinStyler;
 import com.cadist.style.config.GradientRegistry;
 import com.cadist.style.config.MessagePattern;
 import com.cadist.style.config.MessagePatternRegistry;
+import com.cadist.style.tab.TabIntegration;
 import com.cadist.style.util.TextFingerprint;
 import com.github.retrooper.packetevents.event.PacketListenerAbstract;
 import com.github.retrooper.packetevents.event.PacketListenerPriority;
 import com.github.retrooper.packetevents.event.PacketSendEvent;
 import com.github.retrooper.packetevents.protocol.packettype.PacketType;
+import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerPlayerListHeaderAndFooter;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerSystemChatMessage;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.TextComponent;
@@ -16,11 +18,7 @@ import net.kyori.adventure.text.format.TextColor;
 import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
 import org.bukkit.Bukkit;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.ThreadLocalRandom;
 
@@ -53,10 +51,22 @@ public class PacketEventsListener extends PacketListenerAbstract {
 
     @Override
     public void onPacketSend(PacketSendEvent event) {
-        if (event.getPacketType() != PacketType.Play.Server.SYSTEM_CHAT_MESSAGE) {
+        if (event.getPacketType() == PacketType.Play.Server.SYSTEM_CHAT_MESSAGE) {
+            handleSystemChat(event);
             return;
         }
 
+        TabIntegration tab = plugin.getTabIntegration();
+        if (tab == null || !tab.isEnabled()) return;
+
+        if (tab.isTabListEnabled() && event.getPacketType() == PacketType.Play.Server.PLAYER_LIST_HEADER_AND_FOOTER) {
+            handleHeaderFooter(event, tab);
+            return;
+        }
+
+    }
+
+    private void handleSystemChat(PacketSendEvent event) {
         WrapperPlayServerSystemChatMessage packet = new WrapperPlayServerSystemChatMessage(event);
         Component message = packet.getMessage();
         if (message == null) return;
@@ -108,6 +118,62 @@ public class PacketEventsListener extends PacketListenerAbstract {
 
         Component styled = styleComponent(message, gradient);
         packet.setMessage(styled);
+    }
+
+    private void handleHeaderFooter(PacketSendEvent event, TabIntegration tab) {
+        WrapperPlayServerPlayerListHeaderAndFooter packet = new WrapperPlayServerPlayerListHeaderAndFooter(event);
+
+        Component header = packet.getHeader();
+        if (header != null) {
+            Component styled = styleHeaderFooter(header, tab.getTabLineRegistry());
+            if (styled != null) packet.setHeader(styled);
+        }
+
+        Component footer = packet.getFooter();
+        if (footer != null) {
+            Component styled = styleHeaderFooter(footer, tab.getTabLineRegistry());
+            if (styled != null) packet.setFooter(styled);
+        }
+    }
+
+    private Component styleHeaderFooter(Component original, com.cadist.style.config.LinePatternRegistry registry) {
+        if (isAlreadyStyled(original)) return null;
+
+        String text = PlainTextComponentSerializer.plainText().serialize(original);
+        if (text.isEmpty()) return null;
+
+        String[] lines = text.split("\n", -1);
+        Component result = Component.empty();
+        for (int i = 0; i < lines.length; i++) {
+            String line = lines[i];
+            if (line.isEmpty()) {
+                result = result.append(Component.empty());
+            } else {
+                String gradient = registry.getGradient(line);
+                if (gradient != null) {
+                    result = result.append(stylePlainText(line, gradient));
+                } else {
+                    result = result.append(Component.text(line));
+                }
+            }
+            if (i < lines.length - 1) {
+                result = result.append(Component.text("\n"));
+            }
+        }
+        return result;
+    }
+
+    private Component stylePlainText(String text, String gradientId) {
+        GradientRegistry.Gradient g = GradientRegistry.get(gradientId);
+        if (g == null) return Component.text(text);
+
+        Component result = Component.empty();
+        for (int i = 0; i < text.length(); i++) {
+            float t = (float) i / Math.max(1, text.length() - 1);
+            TextColor color = GradientRegistry.colorAt(t, g);
+            result = result.append(Component.text(String.valueOf(text.charAt(i)), color));
+        }
+        return result;
     }
 
     private boolean isAlreadyStyled(Component message) {

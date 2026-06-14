@@ -14,6 +14,7 @@ public class CatppuccinStyler extends JavaPlugin {
     private static CatppuccinStyler instance;
     private StyleConfig styleConfig;
     private MessagePatternRegistry patternRegistry;
+    private com.cadist.style.tab.TabIntegration tabIntegration;
 
     @Override
     public void onEnable() {
@@ -38,6 +39,18 @@ public class CatppuccinStyler extends JavaPlugin {
             getLogger().info("PacketEvents not found — system chat interception disabled.");
         }
 
+        if (getServer().getPluginManager().getPlugin("TAB") != null) {
+            try {
+                Class<?> clazz = Class.forName("com.cadist.style.tab.NezamyTabIntegration");
+                tabIntegration = (com.cadist.style.tab.TabIntegration) clazz.getConstructor(CatppuccinStyler.class).newInstance(this);
+                getLogger().info("TAB integration enabled — Catppuccin TAB styling available.");
+            } catch (Exception e) {
+                getLogger().warning("Failed to load TAB integration: " + e.getMessage());
+            }
+        } else {
+            getLogger().info("TAB not found — Catppuccin TAB styling disabled.");
+        }
+
         getLogger().info("Catppuccin Styler enabled — styling " + styleConfig.getEventDefaults().size() + " event types.");
     }
 
@@ -56,5 +69,9 @@ public class CatppuccinStyler extends JavaPlugin {
 
     public MessagePatternRegistry getPatternRegistry() {
         return patternRegistry;
+    }
+
+    public com.cadist.style.tab.TabIntegration getTabIntegration() {
+        return tabIntegration;
     }
 }

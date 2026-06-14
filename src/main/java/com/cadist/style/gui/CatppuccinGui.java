@@ -55,7 +55,9 @@ public class CatppuccinGui implements InventoryHolder {
                 lore("Reload configuration from disk", CatppuccinTheme.SUBTEXT0)));
         setItem(30, item(Material.MAP, name("Patterns", CatppuccinTheme.PEACH),
                 lore("Browse and edit message patterns", CatppuccinTheme.SUBTEXT0)));
-        setItem(31, item(Material.BOOK, name("Info", CatppuccinTheme.LAVENDER),
+        setItem(31, item(Material.ENDER_EYE, name("Catppuccin TAB", CatppuccinTheme.MAUVE),
+                lore("Style NEZNAMY/TAB lines", CatppuccinTheme.SUBTEXT0)));
+        setItem(32, item(Material.BOOK, name("Info", CatppuccinTheme.LAVENDER),
                 lore("Catppuccin Styler v1.0.0", CatppuccinTheme.SUBTEXT0),
                 lore("30 gradients available", CatppuccinTheme.SURFACE2)));
 
@@ -168,6 +170,7 @@ public class CatppuccinGui implements InventoryHolder {
                         player.closeInventory();
                     }
                     case 30 -> new PatternBrowserGui(plugin, player).open();
+                    case 31 -> new CatppuccinTabGui(plugin, player).openMain();
                 }
             }
             case EVENTS -> {

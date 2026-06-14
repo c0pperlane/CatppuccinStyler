@@ -106,4 +106,31 @@ public class StyleConfig {
     public boolean isUnicodeDecoration() {
         return config.getBoolean("unicode-decoration", true);
     }
+
+    public boolean isCatppuccinTabEnabled() {
+        return config.getBoolean("catppuccin-tab.enabled", false);
+    }
+
+    public void setCatppuccinTabEnabled(boolean enabled) {
+        config.set("catppuccin-tab.enabled", enabled);
+        plugin.saveConfig();
+    }
+
+    public boolean isCatppuccinTabListEnabled() {
+        return config.getBoolean("catppuccin-tab.tab-list", true);
+    }
+
+    public void setCatppuccinTabListEnabled(boolean enabled) {
+        config.set("catppuccin-tab.tab-list", enabled);
+        plugin.saveConfig();
+    }
+
+    public boolean isCatppuccinScoreboardEnabled() {
+        return config.getBoolean("catppuccin-tab.scoreboard", true);
+    }
+
+    public void setCatppuccinScoreboardEnabled(boolean enabled) {
+        config.set("catppuccin-tab.scoreboard", enabled);
+        plugin.saveConfig();
+    }
 }

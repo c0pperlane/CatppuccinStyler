@@ -31,3 +31,9 @@ message-overrides: {}
 
 # Whether to add Unicode decorative prefixes
 unicode-decoration: true
+
+# NEZNAMY/TAB integration (requires TAB plugin)
+catppuccin-tab:
+  enabled: false
+  tab-list: true
+  scoreboard: true

@@ -2,7 +2,7 @@ name: CatppuccinStyler
 version: '${project.version}'
 main: com.cadist.style.CatppuccinStyler
 api-version: '1.20'
-softdepend: [packetevents]
+softdepend: [packetevents, TAB]
 authors: [Cadist]
 description: Universal Catppuccin Mocha chat styling for all server messages
 commands:

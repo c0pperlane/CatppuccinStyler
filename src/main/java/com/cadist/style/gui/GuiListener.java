@@ -19,6 +19,10 @@ public class GuiListener implements Listener {
             gui.handleClick(event);
         } else if (holder instanceof PatternBrowserGui gui) {
             gui.handleClick(event);
+        } else if (holder instanceof CatppuccinTabGui gui) {
+            gui.handleClick(event);
+        } else if (holder instanceof LineBrowserGui gui) {
+            gui.handleClick(event);
         }
     }
 

@@ -49,3 +49,6 @@ Thumbs.db
 
 # Logs
 *.log
+
+# Local git backup used for publishing
+git_bak/
